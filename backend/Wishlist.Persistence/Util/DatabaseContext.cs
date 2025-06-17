@@ -9,7 +9,8 @@ public sealed class DatabaseContext(DbContextOptions<DatabaseContext> options) :
 {
     public const string SchemaName = "Wishlist";
     
-    public DbSet<Rocket> Rockets { get; set; }
+    public DbSet<WishingList> Wishlists { get; set; }
+    public DbSet<WishlistItem> WishlistItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,7 +18,8 @@ public sealed class DatabaseContext(DbContextOptions<DatabaseContext> options) :
 
         modelBuilder.HasDefaultSchema(SchemaName);
 
-        ConfigureRocket(modelBuilder);
+        ConfigureWishlist(modelBuilder);
+        ConfigureWishlistItem(modelBuilder);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
@@ -27,10 +29,22 @@ public sealed class DatabaseContext(DbContextOptions<DatabaseContext> options) :
         configurationBuilder.Conventions.Remove<TableNameFromDbSetConvention>();
     }
 
-    private static void ConfigureRocket(ModelBuilder modelBuilder)
+    private static void ConfigureWishlist(ModelBuilder modelBuilder)
     {
-        EntityTypeBuilder<Rocket> rocket = modelBuilder.Entity<Rocket>();
-        rocket.HasKey(r => r.Id);
-        rocket.Property(r => r.Id).ValueGeneratedOnAdd();
+        EntityTypeBuilder<WishingList> wishlist = modelBuilder.Entity<WishingList>();
+        wishlist.HasKey(w => w.Id);
+        wishlist.Property(w => w.Id).ValueGeneratedOnAdd();
+        wishlist.HasMany(w => w.Items)
+                .WithOne(i => i.Wishlist)
+                .HasForeignKey(i => i.WishlistId)
+                .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    private static void ConfigureWishlistItem(ModelBuilder modelBuilder)
+    {
+        EntityTypeBuilder<WishlistItem> item = modelBuilder.Entity<WishlistItem>();
+        item.HasKey(i => i.Id);
+        item.Property(i => i.Id).ValueGeneratedOnAdd();
+        item.Property(i => i.Name).IsRequired();
     }
 }

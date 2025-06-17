@@ -1,13 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <ProjectReference Include="..\Wishlist.Persistence\Wishlist.Persistence.csproj"/>
-        <InternalsVisibleTo Include="Wishlist.Test"/>
-        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+        <ProjectReference Include="..\Wishlist.Persistence\Wishlist.Persistence.csproj" />
+        <InternalsVisibleTo Include="Wishlist.Test" />
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="OneOf" Version="3.0.271"/>
+        <PackageReference Include="OneOf" Version="3.0.271" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Models\" />
     </ItemGroup>
 
 </Project>

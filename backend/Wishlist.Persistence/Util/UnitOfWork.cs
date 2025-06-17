@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using Wishlist.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -14,16 +14,16 @@ public interface ITransactionProvider : IAsyncDisposable, IDisposable
 
 public interface IUnitOfWork
 {
-    public IRocketRepository RocketRepository { get; }
+    public IWishlistRepository WishlistRepository { get; }
     public Task SaveChangesAsync();
 }
 
-internal sealed class UnitOfWork(DatabaseContext context, ILogger<UnitOfWork> logger)
+internal sealed class UnitOfWork(DatabaseContext context)
     : IUnitOfWork, ITransactionProvider
 {
     private IDbContextTransaction? _transaction;
     
-    public IRocketRepository RocketRepository => new RocketRepository(context.Rockets);
+    public IWishlistRepository WishlistRepository => new WishlistRepository(context.Wishlists, context.WishlistItems);
 
     public async ValueTask BeginTransactionAsync()
     {
@@ -71,18 +71,13 @@ internal sealed class UnitOfWork(DatabaseContext context, ILogger<UnitOfWork> lo
 
     public void Dispose()
     {
-        if (_transaction is null)
-        {
-            return;
-        }
-
-        logger
-            .LogWarning($"Transaction was not disposed in {nameof(DisposeAsync)} and will now be rolled back and disposed in {nameof(Dispose)}");
-        _transaction.Rollback();
-        _transaction.Dispose();
+        _transaction?.Dispose();
     }
 
-    public Task SaveChangesAsync() => context.SaveChangesAsync();
+    public async Task SaveChangesAsync()
+    {
+        await context.SaveChangesAsync();
+    }
 
     private sealed class TransactionException(string message) : Exception(message);
 }

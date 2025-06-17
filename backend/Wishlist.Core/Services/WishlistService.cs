@@ -1,103 +1,110 @@
-using Microsoft.EntityFrameworkCore;
-using Wishlist.Core.Models;
-using Wishlist.Persistence;
+﻿using OneOf;
+using OneOf.Types;
+using Wishlist.Persistence.Model;
+using Wishlist.Persistence.Util;
 
 namespace Wishlist.Core.Services;
 
-public class WishlistService : IWishlistService
+public interface IWishlistService
 {
-    private readonly WishlistDbContext _context;
+    ValueTask<WishingList> AddWishlistAsync(IReadOnlyCollection<(string Name, string? Description)> items);
+    ValueTask<OneOf<WishingList, NotFound>> GetWishlistByIdAsync(int id, bool tracking);
+    ValueTask<IReadOnlyCollection<WishingList>> GetAllWishlistsAsync();
+    ValueTask<OneOf<Success, NotFound>> DeleteWishlistAsync(int id);
 
-    public WishlistService(WishlistDbContext context)
-    {
-        _context = context;
-    }
+    ValueTask<WishlistItem> AddItemAsync(int wishlistId, string name, string? description);
+    ValueTask<OneOf<WishlistItem, NotFound>> GetItemAsync(int wishlistId, int itemId);
+    ValueTask<OneOf<Success, NotFound>> UpdateItemAsync(int wishlistId, int itemId, string name, string? description);
+    ValueTask<OneOf<Success, NotFound>> DeleteItemAsync(int wishlistId, int itemId);
+}
 
-    public async Task<IEnumerable<Wishlist>> GetAllWishlistsAsync()
+internal sealed class WishlistService(IUnitOfWork uow) : IWishlistService
+{
+    public async ValueTask<WishingList> AddWishlistAsync(IReadOnlyCollection<(string Name, string? Description)> items)
     {
-        return await _context.Wishlists
-            .Include(w => w.Items)
-            .ToListAsync();
-    }
+        var wishlist = uow.WishlistRepository.AddWishlist(items);
 
-    public async Task<Wishlist?> GetWishlistByIdAsync(int id)
-    {
-        return await _context.Wishlists
-            .Include(w => w.Items)
-            .FirstOrDefaultAsync(w => w.Id == id);
-    }
+        await uow.SaveChangesAsync();
 
-    public async Task<Wishlist> CreateWishlistAsync(Wishlist wishlist)
-    {
-        _context.Wishlists.Add(wishlist);
-        await _context.SaveChangesAsync();
         return wishlist;
     }
 
-    public async Task<bool> UpdateWishlistAsync(Wishlist wishlist)
+    public async ValueTask<OneOf<WishingList, NotFound>> GetWishlistByIdAsync(int id, bool tracking)
     {
-        var existingWishlist = await _context.Wishlists.FindAsync(wishlist.Id);
-        if (existingWishlist == null)
-        {
-            return false;
-        }
+        var wishlist = await uow.WishlistRepository.GetWishlistByIdAsync(id, tracking);
 
-        _context.Entry(existingWishlist).CurrentValues.SetValues(wishlist);
-        await _context.SaveChangesAsync();
-        return true;
+        return wishlist is null ? new NotFound() : wishlist;
     }
 
-    public async Task<bool> DeleteWishlistAsync(int id)
+    public async ValueTask<IReadOnlyCollection<WishingList>> GetAllWishlistsAsync()
     {
-        var wishlist = await _context.Wishlists.FindAsync(id);
-        if (wishlist == null)
-        {
-            return false;
-        }
+        IReadOnlyCollection<WishingList> wishlists = await uow.WishlistRepository.GetAllWishlistsAsync(false);
 
-        _context.Wishlists.Remove(wishlist);
-        await _context.SaveChangesAsync();
-        return true;
+        return wishlists;
     }
 
-    public async Task<WishlistItem> AddItemAsync(WishlistItem item)
+    public async ValueTask<OneOf<Success, NotFound>> DeleteWishlistAsync(int id)
     {
-        _context.WishlistItems.Add(item);
-        await _context.SaveChangesAsync();
+        var wishlist = await uow.WishlistRepository.GetWishlistByIdAsync(id, true);
+
+        if (wishlist is null)
+        {
+            return new NotFound();
+        }
+
+        uow.WishlistRepository.RemoveWishlist(wishlist);
+
+        await uow.SaveChangesAsync();
+
+        return new Success();
+    }
+
+    public async ValueTask<WishlistItem> AddItemAsync(int wishlistId, string name, string? description)
+    {
+        var item = uow.WishlistRepository.AddItem(wishlistId, name, description);
+
+        await uow.SaveChangesAsync();
+
         return item;
     }
 
-    public async Task<WishlistItem?> GetItemAsync(int wishlistId, int itemId)
+    public async ValueTask<OneOf<WishlistItem, NotFound>> GetItemAsync(int wishlistId, int itemId)
     {
-        return await _context.WishlistItems
-            .FirstOrDefaultAsync(i => i.Id == itemId && i.WishlistId == wishlistId);
+        var item = await uow.WishlistRepository.GetItemAsync(wishlistId, itemId, false);
+
+        return item is null ? new NotFound() : item;
     }
 
-    public async Task<bool> UpdateItemAsync(WishlistItem item)
+    public async ValueTask<OneOf<Success, NotFound>> UpdateItemAsync(int wishlistId, int itemId, string name, string? description)
     {
-        var existingItem = await _context.WishlistItems.FindAsync(item.Id);
-        if (existingItem == null || existingItem.WishlistId != item.WishlistId)
+        var item = await uow.WishlistRepository.GetItemAsync(wishlistId, itemId, true);
+
+        if (item is null)
         {
-            return false;
+            return new NotFound();
         }
 
-        _context.Entry(existingItem).CurrentValues.SetValues(item);
-        await _context.SaveChangesAsync();
-        return true;
+        item.Name = name;
+        item.Description = description;
+
+        await uow.SaveChangesAsync();
+
+        return new Success();
     }
 
-    public async Task<bool> DeleteItemAsync(int wishlistId, int itemId)
+    public async ValueTask<OneOf<Success, NotFound>> DeleteItemAsync(int wishlistId, int itemId)
     {
-        var item = await _context.WishlistItems
-            .FirstOrDefaultAsync(i => i.Id == itemId && i.WishlistId == wishlistId);
-        
-        if (item == null)
+        var item = await uow.WishlistRepository.GetItemAsync(wishlistId, itemId, true);
+
+        if (item is null)
         {
-            return false;
+            return new NotFound();
         }
 
-        _context.WishlistItems.Remove(item);
-        await _context.SaveChangesAsync();
-        return true;
+        uow.WishlistRepository.RemoveItem(item);
+
+        await uow.SaveChangesAsync();
+
+        return new Success();
     }
 } 

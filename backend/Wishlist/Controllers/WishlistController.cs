@@ -60,7 +60,8 @@ public sealed class WishlistController(
         {
             await transaction.BeginTransactionAsync();
 
-            var wishlist = await wishlistService.AddWishlistAsync(request);
+            var items = request.Items.Select(i => (i.Name, i.Description)).ToList();
+            var wishlist = await wishlistService.AddWishlistAsync(items);
             await transaction.CommitAsync();
 
             return CreatedAtAction(nameof(GetWishlistById), 
@@ -93,7 +94,7 @@ public sealed class WishlistController(
         {
             await transaction.BeginTransactionAsync();
 
-            var item = await wishlistService.AddItemAsync(wishlistId, request);
+            var item = await wishlistService.AddItemAsync(wishlistId, request.Name, request.Description);
             await transaction.CommitAsync();
 
             return CreatedAtAction(nameof(GetItem),
@@ -148,7 +149,7 @@ public sealed class WishlistController(
         {
             await transaction.BeginTransactionAsync();
 
-            var result = await wishlistService.UpdateItemAsync(wishlistId, itemId, request);
+            var result = await wishlistService.UpdateItemAsync(wishlistId, itemId, request.Name, request.Description);
             if (result.IsT0)
             {
                 await transaction.CommitAsync();

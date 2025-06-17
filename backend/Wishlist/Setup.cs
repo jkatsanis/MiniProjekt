@@ -1,5 +1,4 @@
-using Wishlist.Core;
-using Wishlist.Core.Services;
+﻿using Wishlist.Core;
 using Wishlist.Core.Util;
 using Wishlist.Persistence;
 using Wishlist.Persistence.Util;
@@ -11,18 +10,13 @@ namespace Wishlist;
 public static class Setup
 {
     public const string CorsPolicyName = "DefaultCorsPolicy";
-    
+
     public static void AddApplicationServices(this IServiceCollection services,
                                               IConfigurationManager configurationManager,
                                               bool isDev)
     {
         services.ConfigurePersistence(configurationManager, isDev);
         services.ConfigureCore();
-    }
-
-    public static void ConfigureCore(this IServiceCollection services)
-    {
-        services.AddScoped<IWishlistService, WishlistService>();
     }
 
     public static Settings LoadAndConfigureSettings(this IServiceCollection services, IConfigurationManager configurationManager)
@@ -37,7 +31,7 @@ public static class Setup
 
         return settings;
     }
-    
+
     public static void AddLogging(this WebApplicationBuilder builder)
     {
         builder.Logging.ClearProviders();
@@ -49,7 +43,7 @@ public static class Setup
                 .ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
         });
     }
-    
+
     public static void AddCors(this IServiceCollection services, Settings settings)
     {
         if (string.IsNullOrWhiteSpace(settings.ClientOrigin))
@@ -67,7 +61,7 @@ public static class Setup
 
         Log.Logger.Debug("Added CORS policy with client origin {ClientOrigin}", settings.ClientOrigin);
     }
-    
+
     public static void ConfigureAdditionalRouteConstraints(this IServiceCollection services)
     {
         services.Configure<RouteOptions>(options =>

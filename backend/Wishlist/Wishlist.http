@@ -1,27 +1,109 @@
-@Host = http://localhost:5200
+﻿@Host = http://localhost:5200
 
-# Execute in order for variables (with IDs) to work correctly
+### Variables
+@wishlistId = 1
+@itemId = 1
 
-### Add rocket
-POST {{Host}}/api/rockets
+### Get all wishlists
+GET {{Host}}/api/wishlists
+
+### Get wishlist by ID
+GET {{Host}}/api/wishlists/{{wishlistId}}
+
+### Create new wishlist
+POST {{Host}}/api/wishlists
 Content-Type: application/json
 
 {
-    "modelName": "Ariane 5",
-    "manufacturer": "Arianespace",
-    "maxThrust": "13700000",
-    "payloadDeltaV": "205800000"
+    "items": [
+        {
+            "name": "Item Name",
+            "description": "Optional description"
+        }
+    ]
 }
 
-> {%
-    client.global.set("rocketId", response.body.id);
-%}
 
-### Get rocket by ID
-GET {{Host}}/api/rockets/{{rocketId}}
+### Add item to wishlist
+POST {{Host}}/api/wishlists/{{wishlistId}}/items
+Content-Type: application/json
 
-### Get all rockets
-GET {{Host}}/api/rockets
+{
+    "name": "Mechanical Keyboard",
+    "description": "RGB mechanical keyboard with brown switches"
+}
 
-### Delete rocket
-DELETE {{Host}}/api/rockets/{{rocketId}}
+### Get item from wishlist
+GET {{Host}}/api/wishlists/{{wishlistId}}/items/{{itemId}}
+
+### Update item in wishlist
+PUT {{Host}}/api/wishlists/{{wishlistId}}/items/{{itemId}}
+Content-Type: application/json
+
+{
+    "name": "Mechanical Keyboard",
+    "description": "RGB mechanical keyboard with blue switches"
+}
+
+### Delete item from wishlist
+DELETE {{Host}}/api/wishlists/{{wishlistId}}/items/{{itemId}}
+
+### Delete wishlist
+DELETE {{Host}}/api/wishlists/{{wishlistId}}
+
+### Get non-existent wishlist
+GET {{Host}}/api/wishlists/999
+
+### Get non-existent item
+GET {{Host}}/api/wishlists/{{wishlistId}}/items/999
+
+### Get items
+GET {{Host}}/api/wishlists/{{wishlistId}}/items/1
+
+### Get wishlist
+GET {{Host}}/api/wishlists/{{wishlistId}}
+
+### Create wishlist with invalid data (empty name)
+POST {{Host}}/api/wishlists
+Content-Type: application/json
+
+{
+    "items": [
+        {
+            "name": "",
+            "description": "Invalid item"
+        }
+    ]
+}
+
+### Create wishlist with invalid data (no items)
+POST {{Host}}/api/wishlists
+Content-Type: application/json
+
+{
+    "items": []
+}
+
+### Add item with invalid data (empty name)
+POST {{Host}}/api/wishlists/{{wishlistId}}/items
+Content-Type: application/json
+
+{
+    "name": "",
+    "description": "Invalid item"
+}
+
+### Update non-existent item
+PUT {{Host}}/api/wishlists/{{wishlistId}}/items/999
+Content-Type: application/json
+
+{
+    "name": "Non-existent item",
+    "description": "This item doesn't exist"
+}
+
+### Delete non-existent item
+DELETE {{Host}}/api/wishlists/{{wishlistId}}/items/999
+
+### Delete non-existent wishlist
+DELETE {{Host}}/api/wishlists/999

@@ -1,4 +1,4 @@
-using Wishlist.Core.Services;
+﻿using Wishlist.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Wishlist.Core.Util;
@@ -9,6 +9,6 @@ public static class CoreSetup
     {
         services.AddSingleton<IClock>(SystemClock.Instance);
         
-        services.AddScoped<IRocketService, RocketService>();
+        services.AddScoped<IWishlistService, WishlistService>();
     }
 }
