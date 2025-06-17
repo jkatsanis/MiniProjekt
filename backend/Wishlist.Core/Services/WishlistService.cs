@@ -1,42 +1,103 @@
-﻿namespace Wishlist.Core.Services;
+using Microsoft.EntityFrameworkCore;
+using Wishlist.Core.Models;
+using Wishlist.Persistence;
 
-public interface IWishlistService
+namespace Wishlist.Core.Services;
+
+public class WishlistService : IWishlistService
 {
-    ValueTask<IReadOnlyCollection<WishlistItem>> GetWishlistItemsAsync(int? itemsPerPage, int? page, string? filter);
-    ValueTask<WishlistItem> AddWishlistItemAsync(string name, string? description);
-    ValueTask<OneOf<WishlistItem, NotFound>> GetWishlistItemByIdAsync(int id);
-    ValueTask<bool> DeleteWishlistItemByIdAsync(int id);
-}
+    private readonly WishlistDbContext _context;
 
-internal sealed class WishlistService(IUnitOfWork uow,
-                                      ILogger<WishlistService> logger) : IWishlistService
-{
-    public async ValueTask<IReadOnlyCollection<WishlistItem>> GetWishlistItemsAsync(int? itemsPerPage, int? page, string? filter) =>
-        await uow.WishlistRepository.GetWishlistItemsAsync(itemsPerPage, page, filter);
-
-    public async ValueTask<WishlistItem> AddWishlistItemAsync(string name, string? description)
+    public WishlistService(WishlistDbContext context)
     {
-        var item = new WishlistItem { Name = name, Description = description };
-        uow.WishlistRepository.Add(item);
-        await uow.SaveChangesAsync();
-        logger.LogInformation("Added wishlist item {name}", name);
+        _context = context;
+    }
+
+    public async Task<IEnumerable<Wishlist>> GetAllWishlistsAsync()
+    {
+        return await _context.Wishlists
+            .Include(w => w.Items)
+            .ToListAsync();
+    }
+
+    public async Task<Wishlist?> GetWishlistByIdAsync(int id)
+    {
+        return await _context.Wishlists
+            .Include(w => w.Items)
+            .FirstOrDefaultAsync(w => w.Id == id);
+    }
+
+    public async Task<Wishlist> CreateWishlistAsync(Wishlist wishlist)
+    {
+        _context.Wishlists.Add(wishlist);
+        await _context.SaveChangesAsync();
+        return wishlist;
+    }
+
+    public async Task<bool> UpdateWishlistAsync(Wishlist wishlist)
+    {
+        var existingWishlist = await _context.Wishlists.FindAsync(wishlist.Id);
+        if (existingWishlist == null)
+        {
+            return false;
+        }
+
+        _context.Entry(existingWishlist).CurrentValues.SetValues(wishlist);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteWishlistAsync(int id)
+    {
+        var wishlist = await _context.Wishlists.FindAsync(id);
+        if (wishlist == null)
+        {
+            return false;
+        }
+
+        _context.Wishlists.Remove(wishlist);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<WishlistItem> AddItemAsync(WishlistItem item)
+    {
+        _context.WishlistItems.Add(item);
+        await _context.SaveChangesAsync();
         return item;
     }
 
-    public async ValueTask<OneOf<WishlistItem, NotFound>> GetWishlistItemByIdAsync(int id)
+    public async Task<WishlistItem?> GetItemAsync(int wishlistId, int itemId)
     {
-        WishlistItem? item = await uow.WishlistRepository.GetByIdAsync(id);
-        return item is not null ? item : new NotFound();
+        return await _context.WishlistItems
+            .FirstOrDefaultAsync(i => i.Id == itemId && i.WishlistId == wishlistId);
     }
 
-    public async ValueTask<bool> DeleteWishlistItemByIdAsync(int id)
+    public async Task<bool> UpdateItemAsync(WishlistItem item)
     {
-        WishlistItem? item = await uow.WishlistRepository.GetByIdAsync(id);
-        if (item is null)
+        var existingItem = await _context.WishlistItems.FindAsync(item.Id);
+        if (existingItem == null || existingItem.WishlistId != item.WishlistId)
+        {
             return false;
-        uow.WishlistRepository.Remove(item);
-        await uow.SaveChangesAsync();
-        logger.LogInformation("Deleted wishlist item with id {id}", id);
+        }
+
+        _context.Entry(existingItem).CurrentValues.SetValues(item);
+        await _context.SaveChangesAsync();
         return true;
     }
-}
+
+    public async Task<bool> DeleteItemAsync(int wishlistId, int itemId)
+    {
+        var item = await _context.WishlistItems
+            .FirstOrDefaultAsync(i => i.Id == itemId && i.WishlistId == wishlistId);
+        
+        if (item == null)
+        {
+            return false;
+        }
+
+        _context.WishlistItems.Remove(item);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+} 

@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Wishlist.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -14,8 +14,7 @@ public interface ITransactionProvider : IAsyncDisposable, IDisposable
 
 public interface IUnitOfWork
 {
-    public IWishlistRepository WishlistRepository { get; }
-
+    public IRocketRepository RocketRepository { get; }
     public Task SaveChangesAsync();
 }
 
@@ -23,8 +22,8 @@ internal sealed class UnitOfWork(DatabaseContext context, ILogger<UnitOfWork> lo
     : IUnitOfWork, ITransactionProvider
 {
     private IDbContextTransaction? _transaction;
-
-    public IWishlistRepository WishlistRepository => new WishlistRepository(context.Wishlist);
+    
+    public IRocketRepository RocketRepository => new RocketRepository(context.Rockets);
 
     public async ValueTask BeginTransactionAsync()
     {

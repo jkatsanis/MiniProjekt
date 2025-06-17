@@ -1,4 +1,4 @@
-﻿using Wishlist.Persistence.Model;
+using Wishlist.Persistence.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
@@ -8,7 +8,8 @@ namespace Wishlist.Persistence.Util;
 public sealed class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbContext(options)
 {
     public const string SchemaName = "Wishlist";
-        public DbSet<Rocket> Wishlist { get; set; }
+    
+    public DbSet<Rocket> Rockets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

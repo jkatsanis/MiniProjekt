@@ -1,4 +1,5 @@
 using Wishlist.Core;
+using Wishlist.Core.Services;
 using Wishlist.Core.Util;
 using Wishlist.Persistence;
 using Wishlist.Persistence.Util;
@@ -17,6 +18,11 @@ public static class Setup
     {
         services.ConfigurePersistence(configurationManager, isDev);
         services.ConfigureCore();
+    }
+
+    public static void ConfigureCore(this IServiceCollection services)
+    {
+        services.AddScoped<IWishlistService, WishlistService>();
     }
 
     public static Settings LoadAndConfigureSettings(this IServiceCollection services, IConfigurationManager configurationManager)
