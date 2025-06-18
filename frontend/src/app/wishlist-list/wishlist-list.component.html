@@ -1,0 +1,21 @@
+<div class="wishlist-header">
+  <button mat-raised-button color="primary" (click)="openAddDialog()">
+    + Neue Wishlist anlegen
+  </button>
+</div>
+<div *ngIf="loading">Lade Wishlists...</div>
+<div *ngIf="error">{{ error }}</div>
+<div *ngIf="!loading && !error && wishlists.length === 0" class="empty-state">
+  <p>Es sind noch keine Wishlists vorhanden.</p>
+  <p>Lege jetzt deine erste Wunschliste an!</p>
+</div>
+<div class="wishlist-grid" *ngIf="!loading && !error && wishlists.length > 0">
+  <mat-card *ngFor="let wishlist of wishlists" class="wishlist-card">
+    <a [routerLink]="['/wishlist', wishlist.id]">
+      <mat-card-title>Wishlist #{{ wishlist.id }}</mat-card-title>
+      <mat-card-content>
+        <div>{{ wishlist.items.length }} Items</div>
+      </mat-card-content>
+    </a>
+  </mat-card>
+</div>

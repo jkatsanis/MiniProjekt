@@ -1,0 +1,4 @@
+<mat-checkbox [checked]="item.isDone" (change)="toggleDone()">
+  <span>{{ item.name }}</span>
+  <span *ngIf="item.description"> - {{ item.description }}</span>
+</mat-checkbox>

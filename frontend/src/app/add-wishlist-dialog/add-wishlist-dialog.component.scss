@@ -1,0 +1,51 @@
+h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #222;
+  padding-top: 0.5rem;
+}
+
+form {
+  background: #fff;
+  padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+  border-radius: 18px;
+  min-width: 350px;
+  max-width: 500px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+.item-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+mat-form-field {
+  flex: 1;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+button[mat-icon-button] {
+  margin-bottom: 0.5rem;
+}
+
+button[mat-button], button[mat-raised-button] {
+  min-width: 100px;
+}
+
+button[mat-button] {
+  color: #1976d2;
+}
+
+button[mat-raised-button] {
+  background: #1976d2;
+  color: #fff;
+}

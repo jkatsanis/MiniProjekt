@@ -1,0 +1,11 @@
+<div *ngIf="loading">Lade Wishlist...</div>
+<div *ngIf="error">{{ error }}</div>
+<mat-card *ngIf="!loading && !error && wishlist">
+  <button mat-stroked-button color="primary" (click)="goBack()" class="back-btn">← Zurück zu allen Wishlists</button>
+  <mat-card-title>Wishlist #{{ wishlist.id }}</mat-card-title>
+  <mat-card-content>
+    <div class="item-list">
+      <app-wishlist-item *ngFor="let item of wishlist.items" [item]="item" [wishlistId]="wishlist.id"></app-wishlist-item>
+    </div>
+  </mat-card-content>
+</mat-card>
