@@ -24,7 +24,7 @@ export class WishlistListComponent implements OnInit {
   ngOnInit(): void {
     this.loadWishlists();
   }
-  
+
   loadWishlists() {
     this.loading = true;
     this.wishlistService.getAllWishlists().subscribe({
